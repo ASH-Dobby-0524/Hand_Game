@@ -27,6 +27,8 @@ public class InGameManager : MonoBehaviour
     // 게임 점수 및 콤보 수
     private int _Score = 0;
     private int _Combo = 0;
+    private int _MaxCombo = 0;
+
     // 게임 남은 시간
     private float remainTime = 60.0f;
     // 생존 시간
@@ -48,6 +50,7 @@ public class InGameManager : MonoBehaviour
     private float minigameTime = 3.0f;
     // 성공한 게임 수
     private int clearedGame = 0;
+    private int playedgame = 0;
     // 미션 텍스트
     public static string missionString = "가위바위보 시작!";
     #endregion
@@ -85,6 +88,10 @@ public class InGameManager : MonoBehaviour
     // ▲▲▲ [추가] ▲▲▲
 
     void Awake() {
+        if (Instance != null) {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
 
         nowGame_Text.text = gameList[nowGame];
@@ -308,17 +315,14 @@ public class InGameManager : MonoBehaviour
     //// 아래의 함수는 다른 스크립트에서 호출 가능 ////
     ////////////////////////////////////////////////
 
-    // 지금 게임 중?
-    public bool isGameStart() {
-        return isGame;
-    }
-
     // 미니게임 성공 시, 함수를 호출 (본인의 스크립트에서 미니게임 성공 조건을 달성했다면 이걸 호출하세요)
     public void gameClear()
     {
-        // AudioManager.Instance.playSFX(); // 클리어 효과음 재생예정
+        AudioManager.Instance.playSFX(6); // 클리어 효과음 재생예정
         _Combo++;
+        if (_Combo > _MaxCombo) _MaxCombo = _Combo;
         clearedGame++;
+        playedgame++;
         remainTime += (5.0f - (survivalTime / 20.0f));
         addScore();
         pickGame();
@@ -327,7 +331,8 @@ public class InGameManager : MonoBehaviour
     // 미니게임 실패 시, 함수를 호출 (본인의 스크립트에서 미니게임이 실패했다면 이걸 호출하세요)
     public void gameFail()
     {
-        // AudioManager.Instance.playSFX(); // 패배 효과음 재생예정
+        AudioManager.Instance.playSFX(7); // 패배 효과음 재생예정
+        playedgame++;
         _Combo = 0;
         remainTime -= 10.0f;
         pickGame();
@@ -425,9 +430,12 @@ public class InGameManager : MonoBehaviour
     private void GameOver()
     {
         isGame = false;
-        // AudioManager.Instance.playSFX(6); // 게임 실패 효과음
-        // AudioManager.Instance.playBGM(2); // 게임 실패 브금 
-        // 게임 패배 패널 띄우기
+        AudioManager.Instance.playSFX(7); // 게임 실패 효과음
+        // AudioManager.Instance.playBGM(2); // 게임 실패 브금
+        float percent = (float)clearedGame / (float)playedgame;
+        string scoreNpercent = $"{clearedGame} ({percent.ToString("P1")})";
+        GameEndScripts.Instance.resultPanelOpen(_Score, scoreNpercent, _MaxCombo, survivalTime_Text.text);
+        DataManager.Instance.IshighScore(_Score);
     }
 
     // 게임을 오래할 수록 점수가 증가됨
@@ -470,6 +478,29 @@ public class InGameManager : MonoBehaviour
         partTime = Mathf.Clamp(partTime, 0.5f, 3.0f); // partTime을 0.5 ~ 3초로 제한
         minigameTime = partTime;
         miniEnd = false;
+    }
+
+    public void StopUDP() {
+        try {
+            if (receiveThread != null && receiveThread.IsAlive) {
+                receiveThread.Abort();  // 스레드 종료
+                receiveThread = null;
+            }
+
+            if (client != null) {
+                client.Close();         // 소켓 닫기
+                client = null;
+            }
+
+            Debug.Log("UDP 통신 중단 완료");
+        }
+        catch (Exception e) {
+            Debug.LogError("UDP 중단 중 오류: " + e);
+        }
+    }
+
+    void OnDestroy() {
+        StopUDP();
     }
 
     void OnApplicationQuit() {

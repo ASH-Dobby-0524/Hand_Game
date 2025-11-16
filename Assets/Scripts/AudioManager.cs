@@ -7,7 +7,19 @@ using UnityEngine.UI;
 
 public class AudioManager : MonoBehaviour
 {
-    public static AudioManager Instance { get; private set; }
+    private static AudioManager instance;
+    public static AudioManager Instance {
+        get {
+            if (instance == null) {
+                // 씬에 AudioManager가 하나도 없다면 자동 생성
+                GameObject prefab = Resources.Load<GameObject>("AudioManager");
+                GameObject obj = Instantiate(prefab);
+                instance = obj.GetComponent<AudioManager>();
+                DontDestroyOnLoad(obj);
+            }
+            return instance;
+        }
+    }
 
     [SerializeField]
     private AudioSource bgmSource;
@@ -18,10 +30,18 @@ public class AudioManager : MonoBehaviour
     [SerializeField]
     private List<AudioClip> bgmClips = new List<AudioClip>();
 
+
+
     private void Awake() {
-        Instance = this;
+
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
         playBGM(0);
-        DontDestroyOnLoad(this);
     }
 
     /// <summary>
@@ -84,25 +104,29 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // 소리 재생
-    public void audioPlay(AudioSource audio) {
-        audio.Play();
-    }
-
-    // 게임 시작 시, BGM을 확 끄지 않고 점점 줄이기
-    public void gameStart() {
-
-        // 현재 재생 중인 BGM 볼륨을 1초 동안 0으로 줄이기
+    public void easeChangeSound(int val) {
         LeanTween.value(gameObject, bgmSource.volume, 0f, 0.7f)
-            .setOnUpdate((float val) => {
-                bgmSource.volume = val;
-            })
-            .setOnComplete(() => {
-                // 기존 BGM 정지
-                bgmSource.Stop();
+    .setOnUpdate((float val) => {
+        bgmSource.volume = val;
+    })
+    .setOnComplete(() => {
+        // 기존 BGM 정지
+        bgmSource.Stop();
 
-                // 새로운 BGM 재생
-                playSFX(0);
-            });
+        // 새로운 BGM 재생
+        playBGM(val);
+    });
     }
+
+    public void easesoundOff() {
+        LeanTween.value(gameObject, bgmSource.volume, 0f, 0.7f)
+    .setOnUpdate((float val) => {
+        bgmSource.volume = val;
+    })
+    .setOnComplete(() => {
+        // 기존 BGM 정지
+        bgmSource.Stop();
+    });
+    }
+
 }

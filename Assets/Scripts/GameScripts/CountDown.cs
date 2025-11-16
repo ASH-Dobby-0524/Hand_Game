@@ -27,6 +27,7 @@ public class CountDown : MonoBehaviour
     IEnumerator StartCountdown() {
 
         countdownText.gameObject.SetActive(false);
+        AudioManager.Instance.playSFX(0);
         yield return new WaitForSeconds(2.5f);
 
         Intro_Animation();
@@ -106,6 +107,7 @@ public class CountDown : MonoBehaviour
 
         LeanTween.moveLocalY(ui_Panel.gameObject, 0f, 3f).
             setEase(LeanTweenType.easeOutCirc);
+
 
     }
 
