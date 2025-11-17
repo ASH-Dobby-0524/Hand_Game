@@ -24,6 +24,8 @@ public class InGameManager : MonoBehaviour
                                              "ccc_left", "ccc_mid", "ccc_right",  // 참참참(좌중우)
                                              "zero_0", "zero_1", "zero_2"};      // 제로(0, 1, 2)
 
+    private List<Texture2D> preloadedHandTextures; // 텍스처를 미리 담아둘 리스트
+
     // 게임 점수 및 콤보 수
     private int _Score = 0;
     private int _Combo = 0;
@@ -93,6 +95,19 @@ public class InGameManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // ▼▼▼ [수정] 텍스처 미리 불러오기 ▼▼▼
+        preloadedHandTextures = new List<Texture2D>();
+        foreach (string handName in handList) {
+            Texture2D tex = Resources.Load<Texture2D>("Hand/" + handName);
+            if (tex != null) {
+                preloadedHandTextures.Add(tex);
+            }
+            else {
+                Debug.LogError("텍스처 로드 실패! : Hand/" + handName);
+            }
+        }
+        // ▲▲▲ [수정] ▲▲▲
 
         nowGame_Text.text = gameList[nowGame];
         nextGame_Text.text = gameList[nextGame];
@@ -199,8 +214,8 @@ public class InGameManager : MonoBehaviour
                     gameSpecificValue = handArray[0]; // 배열의 첫 번째 값
                     // [매핑] 
                     // 파이썬 (0:가위, 1:바위, 2:보) -> handList (1:가위, 0:바위, 2:보)
-                    if (gameSpecificValue == 0) finalHandValue = 1; // 0(가위) -> 1(scissors)
-                    else if (gameSpecificValue == 1) finalHandValue = 0; // 1(바위) -> 0(rock)
+                    if (gameSpecificValue == 0) finalHandValue = 0; // 0(가위) -> 1(scissors)
+                    else if (gameSpecificValue == 1) finalHandValue = 1; // 1(바위) -> 0(rock)
                     else if (gameSpecificValue == 2) finalHandValue = 2; // 2(보) -> 2(paper)
                     break;
                 // nowGame 1: 참참참
@@ -344,8 +359,9 @@ public class InGameManager : MonoBehaviour
         if (isGame == false) return;
         if (playerHand == val) return;
         playerHand_effect.Clear();
-        Texture2D loadTexture
-            = Resources.Load<Texture2D>("Hand/" + handList[val]);
+        // Texture2D loadTexture
+        //     = Resources.Load<Texture2D>("Hand/" + handList[val]);
+        Texture2D loadTexture = preloadedHandTextures[val];
 
         var shapeModule_p = playerHand_effect.shape;
         playerHand = val;
@@ -359,12 +375,14 @@ public class InGameManager : MonoBehaviour
         if (isGame == false) return;
         if (oppoentHand == val) return;
         oppoentHand_effect.Clear();
-        Texture2D loadtexture_oppoent
-            = Resources.Load<Texture2D>("Hand/" + handList[val]);
+        // Texture2D loadtexture_oppoent
+        //     = Resources.Load<Texture2D>("Hand/" + handList[val]);
+
+        Texture2D loadTexture = preloadedHandTextures[val];
 
         var shapeModule_o = oppoentHand_effect.shape;
         oppoentHand = val;
-        shapeModule_o.texture = loadtexture_oppoent;
+        shapeModule_o.texture = loadTexture;
         oppoentHand_effect.Emit(15000);
     }
 
