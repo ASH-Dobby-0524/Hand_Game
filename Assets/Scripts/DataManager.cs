@@ -18,6 +18,8 @@ public class DataManager : MonoBehaviour {
 
     public void IshighScore(int score) {
         highScore = (highScore > score) ? highScore : score;
+        PlayerPrefs.SetInt("HighScore", highScore);
+        PlayerPrefs.Save();
     }
 
 }

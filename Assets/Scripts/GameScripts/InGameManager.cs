@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using TMPro;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class InGameManager : MonoBehaviour
@@ -124,15 +122,22 @@ public class InGameManager : MonoBehaviour
         timeTick();
 
         // 플레이어 손 키보드로 구현
-        if (Input.GetKeyDown(KeyCode.Z)) playerHandChange(0);
-        if (Input.GetKeyDown(KeyCode.X)) playerHandChange(1);
-        if (Input.GetKeyDown(KeyCode.C)) playerHandChange(2);
-        if (Input.GetKeyDown(KeyCode.Q)) playerHandChange(3);
-        if (Input.GetKeyDown(KeyCode.W)) playerHandChange(4);
-        if (Input.GetKeyDown(KeyCode.E)) playerHandChange(5);
-        if (Input.GetKeyDown(KeyCode.A)) playerHandChange(6);
-        if (Input.GetKeyDown(KeyCode.S)) playerHandChange(7);
-        if (Input.GetKeyDown(KeyCode.D)) playerHandChange(8);
+        if (nowGame == 0) {
+            if (Input.GetKeyDown(KeyCode.Z)) playerHandChange(0);
+            if (Input.GetKeyDown(KeyCode.X)) playerHandChange(1);
+            if (Input.GetKeyDown(KeyCode.C)) playerHandChange(2);
+        }
+
+        else if (nowGame == 1) {
+            if (Input.GetKeyDown(KeyCode.Z)) playerHandChange(3);
+            if (Input.GetKeyDown(KeyCode.X)) playerHandChange(4);
+            if (Input.GetKeyDown(KeyCode.C)) playerHandChange(5);
+        }
+        else if (nowGame == 2) {
+            if (Input.GetKeyDown(KeyCode.Z)) playerHandChange(6);
+            if (Input.GetKeyDown(KeyCode.X)) playerHandChange(7);
+            if (Input.GetKeyDown(KeyCode.C)) playerHandChange(8);
+        }
     }
 
     private bool miniEnd = false;

@@ -12,7 +12,10 @@ public class ScrollAudio : MonoBehaviour
     public Scrollbar sfxaudioSlider;
     public Scrollbar bgmaudioSlider;
 
+    public Text high;
+
     public void Start() {
+        high.text = PlayerPrefs.GetInt("HighScore").ToString("N0");
         audioMixer.SetFloat("SFX", 0.0f);
         audioMixer.SetFloat("BGM", 0.0f);
     }
@@ -34,6 +37,8 @@ public class ScrollAudio : MonoBehaviour
         audioMixer.SetFloat("BGM", 0.0f);
         sfxaudioSlider.value = 1.0f;
         bgmaudioSlider.value = 1.0f;
+        PlayerPrefs.SetInt("HighScore", 0);
+        high.text = PlayerPrefs.GetInt("HighScore").ToString("N0");
     }
 
 }

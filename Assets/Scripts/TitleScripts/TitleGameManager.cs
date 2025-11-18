@@ -29,12 +29,10 @@ public class TitleGameManager : MonoBehaviour
     }
 
 
-    public Text high;
 
     // 게임Scene이 이동할 때, 애니메이션이 출력되게 바꿈
     void Start() {
 
-        high.text = DataManager.Instance.highScore.ToString("N0");
     }
 
 }
