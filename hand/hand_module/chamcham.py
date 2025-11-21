@@ -1,21 +1,31 @@
-# chamcham.py
+import math
 
-def detect_hand_orientation(hand_list):
+def detect_hand_orientation(hand_list, offset_deg=10):
     if not hand_list:
         return "none"
 
-    hand = hand_list[0]  # 첫 번째 손 기준
+    hand = hand_list[0]
 
-    wrist = hand.landmark[0]  # 손목
-    tip = hand.landmark[8]    # 검지 끝
+    wrist = hand.landmark[0]
+    index_mcp = hand.landmark[5]
 
-    diff = tip.x - wrist.x   # 양수 → 오른쪽, 음수 → 왼쪽
+    dx = index_mcp.x - wrist.x
+    dy = index_mcp.y - wrist.y
 
-    threshold = 0.25  # 중앙 판정 임계값
+    angle = math.degrees(math.atan2(dy, dx))
 
-    if abs(diff) < threshold:
-        return "middle"
-    elif diff < 0:
-        return "left"
-    else:
+    # 기준 오른쪽으로 이동
+    angle += offset_deg
+
+
+
+    # 오른쪽
+    if -90 <= angle <= 90:
         return "right"
+
+    # 왼쪽
+    if angle >= 120 or angle <= -120:
+        return "left"
+
+    # 중앙
+    return "middle"
