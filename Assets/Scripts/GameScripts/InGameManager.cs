@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -102,7 +104,7 @@ public class InGameManager : MonoBehaviour
                 preloadedHandTextures.Add(tex);
             }
             else {
-                Debug.LogError("텍스처 로드 실패! : Hand/" + handName);
+                UnityEngine.Debug.LogError("텍스처 로드 실패! : Hand/" + handName);
             }
         }
         // ▲▲▲ [수정] ▲▲▲
@@ -111,6 +113,8 @@ public class InGameManager : MonoBehaviour
         nextGame_Text.text = gameList[nextGame];
 
         InitializeUDP();
+
+        RunPythonScript();
     }
 
     void Update() {
@@ -138,6 +142,28 @@ public class InGameManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.X)) playerHandChange(7);
             if (Input.GetKeyDown(KeyCode.C)) playerHandChange(8);
         }
+    }
+
+    private Process pythonProcess;
+
+    private void RunPythonScript() {
+        ProcessStartInfo psi = new ProcessStartInfo();
+        string Pypath = Path.Combine(Application.dataPath, "../main.exe");
+        Pypath = Path.GetFullPath(Pypath);
+
+        psi.FileName = Pypath;
+        psi.Arguments = "";
+        psi.UseShellExecute = false;
+        psi.CreateNoWindow = true;
+
+        try {
+            pythonProcess = Process.Start(psi);
+            UnityEngine.Debug.Log($"AI 모델 실행 성공: {Pypath}");
+        }
+        catch (System.Exception e) {
+            UnityEngine.Debug.LogError($"실행 실패: {e.Message}");
+        }
+
     }
 
     private bool miniEnd = false;
@@ -266,7 +292,7 @@ public class InGameManager : MonoBehaviour
         receiveThread = new Thread(new ThreadStart(ReceiveData));
         receiveThread.IsBackground = true;
         receiveThread.Start();
-        Debug.Log("UDP Thread Started. Listening on port " + port);
+        UnityEngine.Debug.Log("UDP Thread Started. Listening on port " + port);
     }
 
     /// <summary>
@@ -296,21 +322,10 @@ public class InGameManager : MonoBehaviour
                         }
                     }
                 }
-                // (참고) 만약 파이썬에서 4바이트 int 3개를 보낸다면 (총 12바이트)
-                // else if (data != null && data.Length == 12)
-                // {
-                //    int[] detectedHandArray = new int[3];
-                //    detectedHandArray[0] = System.BitConverter.ToInt32(data, 0);
-                //    detectedHandArray[1] = System.BitConverter.ToInt32(data, 4);
-                //    detectedHandArray[2] = System.BitConverter.ToInt32(data, 8);
-                //    
-                //    if (!AreArraysEqual(detectedHandArray, lastReceivedHandArray))
-                //    { ... (큐에 추가) ... }
-                // }
 
             }
             catch (Exception err) {
-                Debug.LogError(err.ToString());
+                UnityEngine.Debug.LogError(err.ToString());
             }
         }
     }
@@ -515,10 +530,10 @@ public class InGameManager : MonoBehaviour
                 client = null;
             }
 
-            Debug.Log("UDP 통신 중단 완료");
+            UnityEngine.Debug.Log("UDP 통신 중단 완료");
         }
         catch (Exception e) {
-            Debug.LogError("UDP 중단 중 오류: " + e);
+            UnityEngine.Debug.LogError("UDP 중단 중 오류: " + e);
         }
     }
 
@@ -532,6 +547,12 @@ public class InGameManager : MonoBehaviour
         }
         if (client != null)
             client.Close();
+
+        if (pythonProcess != null && !pythonProcess.HasExited) {
+            pythonProcess.Kill(); // 강제 종료
+            pythonProcess.Dispose(); // 리소스 해제
+            UnityEngine.Debug.Log("파이썬 프로세스 종료됨");
+        }
     }
 
 }

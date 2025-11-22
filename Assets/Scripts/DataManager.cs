@@ -4,7 +4,7 @@ public class DataManager : MonoBehaviour {
 
     public static DataManager Instance;
 
-    public int highScore = 0;
+    public static int highScore = 0;
 
     void Awake() {
         if (Instance == null) {
