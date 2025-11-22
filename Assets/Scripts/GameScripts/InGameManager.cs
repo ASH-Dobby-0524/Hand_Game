@@ -78,6 +78,8 @@ public class InGameManager : MonoBehaviour
     private RectTransform timeGauge;
     #endregion
 
+    private string pythonExeName = "main.exe";
+
     // ▼▼▼ [추가] UDP 네트워크 변수들 ▼▼▼
     private Thread receiveThread;
     private UdpClient client;
@@ -96,6 +98,7 @@ public class InGameManager : MonoBehaviour
         }
         Instance = this;
 
+
         // ▼▼▼ [수정] 텍스처 미리 불러오기 ▼▼▼
         preloadedHandTextures = new List<Texture2D>();
         foreach (string handName in handList) {
@@ -113,7 +116,6 @@ public class InGameManager : MonoBehaviour
         nextGame_Text.text = gameList[nextGame];
 
         InitializeUDP();
-
         RunPythonScript();
     }
 
@@ -537,8 +539,26 @@ public class InGameManager : MonoBehaviour
         }
     }
 
+    private void KillPythonForce() {
+        try {
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.FileName = "taskkill";
+            // /IM: 이미지 이름(파일이름), /F: 강제종료, /T: 자식프로세스까지 전부
+            psi.Arguments = $"/IM {pythonExeName} /F /T";
+            psi.CreateNoWindow = true;
+            psi.UseShellExecute = false;
+
+            Process.Start(psi);
+            UnityEngine.Debug.Log($"{pythonExeName} 강제 종료 명령 실행됨");
+        }
+        catch (Exception e) {
+            UnityEngine.Debug.LogError($"강제 종료 실패: {e.Message}");
+        }
+    }
+
     void OnDestroy() {
         StopUDP();
+        KillPythonForce();
     }
 
     void OnApplicationQuit() {
@@ -547,12 +567,7 @@ public class InGameManager : MonoBehaviour
         }
         if (client != null)
             client.Close();
-
-        if (pythonProcess != null && !pythonProcess.HasExited) {
-            pythonProcess.Kill(); // 강제 종료
-            pythonProcess.Dispose(); // 리소스 해제
-            UnityEngine.Debug.Log("파이썬 프로세스 종료됨");
-        }
+        KillPythonForce();
     }
 
 }

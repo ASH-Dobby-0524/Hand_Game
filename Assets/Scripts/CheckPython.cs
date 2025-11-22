@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
@@ -92,10 +93,29 @@ public class CheckPython : MonoBehaviour
 
             test.Kill();
             test.Dispose();
+            KillPythonForce();
             UnityEngine.Debug.Log("테스트 프로세스 정상 종료됨");
         }
 
         validationButton.interactable = true;
+    }
+
+    private string pythonExeName = "main.exe";
+    private void KillPythonForce() {
+        try {
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.FileName = "taskkill";
+            // /IM: 이미지 이름(파일이름), /F: 강제종료, /T: 자식프로세스까지 전부
+            psi.Arguments = $"/IM {pythonExeName} /F /T";
+            psi.CreateNoWindow = true;
+            psi.UseShellExecute = false;
+
+            Process.Start(psi);
+            UnityEngine.Debug.Log($"{pythonExeName} 강제 종료 명령 실행됨");
+        }
+        catch (Exception e) {
+            UnityEngine.Debug.LogError($"강제 종료 실패: {e.Message}");
+        }
     }
 
 }
